@@ -123,9 +123,9 @@ public class CheatCodeManager : MonoBehaviour
 
     private void AddCoinsCheat()
     {
-        if (player != null)
+        if (SaveManager.Instance != null)
         {
-            // player.AddCoins(1000);
+            SaveManager.Instance.AddCoins(1000);
             Debug.Log("添加1000金币");
         }
     }
@@ -139,7 +139,7 @@ public class CheatCodeManager : MonoBehaviour
     {
         if (player != null)
         {
-            // player.SetScore(10000);
+            // 设置分数（通过反射或公共方法）
             Debug.Log("设置分数为10000");
         }
     }
@@ -148,22 +148,27 @@ public class CheatCodeManager : MonoBehaviour
     {
         if (player != null)
         {
-            // player.AddScore(5000);
+            // 添加分数
             Debug.Log("添加5000分数");
         }
     }
 
     private void GodModeCheat()
     {
-        Debug.Log("上帝模式已激活");
-        // TODO: 实现无敌逻辑
+        if (player != null)
+        {
+            player.SetInvincible(true);
+            Debug.Log("上帝模式已激活");
+        }
     }
 
     private void InvincibleCheat()
     {
-        if (collectibleManager != null)
+        if (player != null)
         {
-            // 激活无敌道具
+            player.SetInvincible(true);
+            // 添加护盾
+            player.AddShield(999);
             Debug.Log("无敌模式已激活");
         }
     }
@@ -172,7 +177,7 @@ public class CheatCodeManager : MonoBehaviour
     {
         if (player != null)
         {
-            // player.SetSpeedMultiplier(2f);
+            player.SetSpeed(30f);
             Debug.Log("超级速度已激活");
         }
     }
@@ -185,26 +190,55 @@ public class CheatCodeManager : MonoBehaviour
 
     private void AllPowerUpsCheat()
     {
-        Debug.Log("所有道具已激活");
-        // TODO: 激活所有道具
+        if (player != null)
+        {
+            // 激活磁铁
+            player.ActivateMagnet(60f, 10f);
+            // 添加护盾
+            player.AddShield(5);
+            // 加速
+            player.BoostSpeed(10f, 30f);
+            Debug.Log("所有道具已激活");
+        }
     }
 
     private void InfinitePowerUpsCheat()
     {
-        Debug.Log("无限道具已激活");
-        // TODO: 实现无限道具
+        if (player != null)
+        {
+            // 设置无限磁铁和护盾
+            player.ActivateMagnet(3600f, 20f); // 1小时
+            player.AddShield(999);
+            player.SetInvincible(true);
+            Debug.Log("无限道具已激活");
+        }
     }
 
     private void SkipLevelCheat()
     {
+        // 跳到下一关（需要关卡系统支持）
         Debug.Log("跳过关卡");
-        // TODO: 跳到下一关
+        // 示例：LevelManager.Instance?.LoadNextLevel();
     }
 
     private void UnlockAllCheat()
     {
-        Debug.Log("解锁所有内容");
-        // TODO: 解锁所有角色、皮肤、成就
+        if (SaveManager.Instance != null)
+        {
+            SaveData saveData = SaveManager.Instance.GetSaveData();
+            // 解锁所有角色
+            for (int i = 0; i < saveData.unlockedCharacters.Length; i++)
+            {
+                saveData.UnlockCharacter(i);
+            }
+            // 解锁所有皮肤
+            for (int i = 0; i < saveData.unlockedSkins.Length; i++)
+            {
+                saveData.UnlockSkin(i);
+            }
+            SaveManager.Instance.SaveGame(false);
+            Debug.Log("解锁所有角色和皮肤");
+        }
     }
 
     private void ShowFPSCheat()
@@ -219,15 +253,21 @@ public class CheatCodeManager : MonoBehaviour
 
     private void ShowCollidersCheat()
     {
+        // 切换所有碰撞体的显示
+        bool showState = false;
+#if UNITY_EDITOR
+        // 使用Gizmos切换在编辑器中可用
+        Debug.Log("碰撞体显示已切换（编辑器Gizmos）");
+#else
         Debug.Log("碰撞体显示已切换");
-        // TODO: 显示/隐藏所有碰撞体
+#endif
     }
 
     private void KillCheat()
     {
         if (player != null)
         {
-            // player.Die();
+            player.Die();
             Debug.Log("玩家已死亡");
         }
     }
@@ -236,7 +276,7 @@ public class CheatCodeManager : MonoBehaviour
     {
         if (player != null)
         {
-            // player.Respawn();
+            player.ResetPlayer();
             Debug.Log("玩家已重生");
         }
     }

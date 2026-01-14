@@ -309,7 +309,16 @@ public class AchievementTracker : MonoBehaviour
     private void ShowAchievementNotification(AchievementData achievement)
     {
         Debug.Log($"🏆 成就解锁: {achievement.achievementId}!");
-        // TODO: 显示UI通知
+
+        // TODO: 创建并显示成就通知UI
+        // 这里需要UI系统支持，可以创建一个简单的通知面板
+        // 示例伪代码：
+        // AchievementNotificationUI notification = Instantiate(achievementNotificationPrefab);
+        // notification.SetAchievementInfo(achievement.achievementId, achievement.progress, achievement.targetValue);
+        // notification.Show(notificationDuration);
+
+        // 触发事件供UI系统监听
+        OnAchievementUnlocked?.Invoke(achievement);
     }
 
     #endregion

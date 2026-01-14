@@ -220,27 +220,55 @@ public class ChallengeManager : MonoBehaviour
             switch (reward.type)
             {
                 case RewardType.Coins:
-                    // TODO: 添加金币
-                    Debug.Log($"挑战奖励: {reward.amount} 金币");
+                    if (SaveManager.Instance != null)
+                    {
+                        SaveManager.Instance.AddCoins(reward.amount);
+                        Debug.Log($"挑战奖励: {reward.amount} 金币");
+                    }
                     break;
 
                 case RewardType.Experience:
-                    // TODO: 添加经验
-                    Debug.Log($"挑战奖励: {reward.amount} 经验");
+                    if (SaveManager.Instance != null)
+                    {
+                        SaveManager.Instance.AddExperience(reward.amount);
+                        Debug.Log($"挑战奖励: {reward.amount} 经验");
+                    }
                     break;
 
                 case RewardType.Character:
-                    // TODO: 解锁角色
-                    Debug.Log($"挑战奖励: 解锁角色 {reward.itemId}");
+                    if (ShopManager.Instance != null && !string.IsNullOrEmpty(reward.itemId))
+                    {
+                        CharacterData character = ShopManager.Instance.GetCharacter(reward.itemId);
+                        if (character != null)
+                        {
+                            int characterIndex = ShopManager.Instance.GetAllCharacters().IndexOf(character);
+                            if (characterIndex >= 0 && SaveManager.Instance != null)
+                            {
+                                SaveManager.Instance.GetSaveData().UnlockCharacter(characterIndex);
+                                Debug.Log($"挑战奖励: 解锁角色 {reward.itemId}");
+                            }
+                        }
+                    }
                     break;
 
                 case RewardType.Skin:
-                    // TODO: 解锁皮肤
-                    Debug.Log($"挑战奖励: 解锁皮肤 {reward.itemId}");
+                    if (ShopManager.Instance != null && !string.IsNullOrEmpty(reward.itemId))
+                    {
+                        SkinData skin = ShopManager.Instance.GetSkin(reward.itemId);
+                        if (skin != null)
+                        {
+                            int skinIndex = ShopManager.Instance.GetAllSkins().IndexOf(skin);
+                            if (skinIndex >= 0 && SaveManager.Instance != null)
+                            {
+                                SaveManager.Instance.GetSaveData().UnlockSkin(skinIndex);
+                                Debug.Log($"挑战奖励: 解锁皮肤 {reward.itemId}");
+                            }
+                        }
+                    }
                     break;
 
                 case RewardType.Title:
-                    // TODO: 解锁称号
+                    // TODO: 解锁称号（需要添加称号系统）
                     Debug.Log($"挑战奖励: 解锁称号 {reward.itemId}");
                     break;
             }

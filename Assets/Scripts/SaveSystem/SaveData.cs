@@ -12,6 +12,8 @@ public class SaveData
     public int highScore;
     public float totalDistance;
     public int totalRuns;
+    public int playerExperience;
+    public int playerLevel;
 
     [Header("最高分记录")]
     public int dailyHighScore;
@@ -41,6 +43,10 @@ public class SaveData
     public string lastSaveTime;
     public string lastPlayTime;
 
+    // 经验等级常量
+    private const int BASE_EXP_REQUIRED = 100;
+    private const float EXP_SCALING_FACTOR = 1.5f;
+
     public SaveData()
     {
         // 初始化默认值
@@ -48,6 +54,8 @@ public class SaveData
         highScore = 0;
         totalDistance = 0f;
         totalRuns = 0;
+        playerExperience = 0;
+        playerLevel = 1;
 
         dailyHighScore = 0;
         weeklyHighScore = 0;
@@ -149,4 +157,58 @@ public class SaveData
     {
         lastPlayTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
     }
+
+    #region 经验和等级系统
+
+    /// <summary>
+    /// 添加经验值并自动升级
+    /// </summary>
+    public void AddExperience(int amount)
+    {
+        playerExperience += amount;
+        CheckLevelUp();
+    }
+
+    /// <summary>
+    /// 获取当前等级所需经验值
+    /// </summary>
+    public int GetExperienceRequiredForLevel(int level)
+    {
+        if (level <= 1) return 0;
+        return Mathf.FloorToInt(BASE_EXP_REQUIRED * Mathf.Pow(EXP_SCALING_FACTOR, level - 2));
+    }
+
+    /// <summary>
+    /// 获取升级到下一级所需的经验值
+    /// </summary>
+    public int GetExperienceToNextLevel()
+    {
+        return GetExperienceRequiredForLevel(playerLevel + 1) - playerExperience;
+    }
+
+    /// <summary>
+    /// 检查是否升级
+    /// </summary>
+    private void CheckLevelUp()
+    {
+        int requiredExp = GetExperienceRequiredForLevel(playerLevel + 1);
+        while (playerExperience >= requiredExp && requiredExp > 0)
+        {
+            playerLevel++;
+            requiredExp = GetExperienceRequiredForLevel(playerLevel + 1);
+        }
+    }
+
+    /// <summary>
+    /// 获取当前等级经验百分比
+    /// </summary>
+    public float GetExperiencePercentage()
+    {
+        int currentLevelExp = GetExperienceRequiredForLevel(playerLevel);
+        int nextLevelExp = GetExperienceRequiredForLevel(playerLevel + 1);
+        if (nextLevelExp <= currentLevelExp) return 1f;
+        return Mathf.Clamp01((float)(playerExperience - currentLevelExp) / (nextLevelExp - currentLevelExp));
+    }
+
+    #endregion
 }

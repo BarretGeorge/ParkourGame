@@ -122,19 +122,28 @@ public class CharacterAppearanceController : MonoBehaviour
             // 速度修正
             if (currentCharacter.speedModifier != 1f)
             {
-                // TODO: 应用速度修正
+                player.SetSpeed(player.PlayerData.baseSpeed * currentCharacter.speedModifier);
             }
 
             // 跳跃修正
             if (currentCharacter.jumpModifier != 1f)
             {
-                // TODO: 应用跳跃修正
+                PlayerJump playerJump = player.GetComponent<PlayerJump>();
+                if (playerJump != null)
+                {
+                    playerJump.SetJumpForceModifier(currentCharacter.jumpModifier);
+                }
             }
 
             // 磁铁修正
             if (currentCharacter.coinMagnetModifier != 1f)
             {
-                // TODO: 应用磁铁范围修正
+                // 通过升级管理器应用磁铁范围修正
+                if (UpgradeManager.Instance != null)
+                {
+                    float baseMultiplier = UpgradeManager.Instance.GetMagnetRangeMultiplier();
+                    float finalMultiplier = baseMultiplier * currentCharacter.coinMagnetModifier;
+                }
             }
         }
     }

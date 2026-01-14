@@ -68,7 +68,7 @@ public class ShopManager : MonoBehaviour
     {
         int playerCoins = SaveManager.Instance?.TotalCoins ?? 0;
         int playerHighScore = SaveManager.Instance?.HighScore ?? 0;
-        int playerLevel = 1; // TODO: 从SaveData获取
+        int playerLevel = SaveManager.Instance?.PlayerLevel ?? 1;
 
         // 更新角色解锁状态
         characterUnlockStatus.Clear();
@@ -154,7 +154,10 @@ public class ShopManager : MonoBehaviour
                 if (playerCoins >= character.unlockCost)
                 {
                     // 扣除金币
-                    // TODO: 添加金币扣除逻辑
+                    if (SaveManager.Instance != null)
+                    {
+                        SaveManager.Instance.SpendCoins(character.unlockCost);
+                    }
 
                     // 解锁角色
                     if (SaveManager.Instance != null)
@@ -270,7 +273,10 @@ public class ShopManager : MonoBehaviour
                 if (playerCoins >= skin.unlockCost)
                 {
                     // 扣除金币
-                    // TODO: 添加金币扣除逻辑
+                    if (SaveManager.Instance != null)
+                    {
+                        SaveManager.Instance.SpendCoins(skin.unlockCost);
+                    }
 
                     // 解锁皮肤
                     if (SaveManager.Instance != null)
@@ -330,7 +336,7 @@ public class ShopManager : MonoBehaviour
     {
         if (SaveManager.Instance != null)
         {
-            // TODO: 实现金币扣除
+            SaveManager.Instance.SpendCoins(amount);
             Debug.Log($"花费 {amount} 金币");
         }
     }

@@ -357,14 +357,14 @@ public class DailyQuestManager : MonoBehaviour
         // 发放金币奖励
         if (SaveManager.Instance != null && quest.coinReward > 0)
         {
-            // TODO: 添加金币到玩家账户
+            SaveManager.Instance.AddCoins(quest.coinReward);
             Debug.Log($"获得 {quest.coinReward} 金币");
         }
 
         // 发放经验奖励
-        if (quest.expReward > 0)
+        if (SaveManager.Instance != null && quest.expReward > 0)
         {
-            // TODO: 添加经验到玩家账户
+            SaveManager.Instance.AddExperience(quest.expReward);
             Debug.Log($"获得 {quest.expReward} 经验");
         }
     }

@@ -32,6 +32,13 @@ public class PlayerController : MonoBehaviour
     private bool isGameActive = true;
     private bool isPaused = false;
 
+    // 道具效果状态
+    private bool hasMagnetActive = false;
+    private float magnetEndTime = 0f;
+    private float magnetRange = 5f;
+    private int shieldCount = 0;
+    private bool isInvincible = false;
+
     // 统计数据
     public int CoinsCollected { get; private set; }
     public float Score { get; private set; }
@@ -54,6 +61,9 @@ public class PlayerController : MonoBehaviour
     public bool IsClimbing => playerClimb != null && playerClimb.IsClimbing;
     public int CurrentLane => laneManager.CurrentLane;
     public PlayerData PlayerData => playerData;
+    public bool HasMagnetActive => hasMagnetActive && Time.time < magnetEndTime;
+    public int ShieldCount => shieldCount;
+    public bool IsInvincible => isInvincible;
 
     #endregion
 
@@ -121,7 +131,83 @@ public class PlayerController : MonoBehaviour
         HandleInput();
         UpdateMovement();
         UpdateStats();
+        UpdatePowerUps();
+        CollectNearbyCoins();
     }
+
+    /// <summary>
+    /// 更新道具状态
+    /// </summary>
+    private void UpdatePowerUps()
+    {
+        // 检查磁铁是否过期
+        if (hasMagnetActive && Time.time >= magnetEndTime)
+        {
+            hasMagnetActive = false;
+        }
+    }
+
+    /// <summary>
+    /// 收集附近的金币（磁铁效果）
+    /// </summary>
+    private void CollectNearbyCoins()
+    {
+        if (!HasMagnetActive) return;
+
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, magnetRange);
+        foreach (var hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Coin"))
+            {
+                // 将金币吸引到玩家位置
+                Vector3 direction = (transform.position - hitCollider.transform.position).normalized;
+                float distance = Vector3.Distance(transform.position, hitCollider.transform.position);
+
+                if (distance < 1f)
+                {
+                    AddCoin(1);
+                    Destroy(hitCollider.gameObject);
+                }
+                else
+                {
+                    hitCollider.transform.position += direction * 10f * Time.deltaTime;
+                }
+            }
+        }
+    }
+
+    #region 道具效果
+
+    /// <summary>
+    /// 激活磁铁效果
+    /// </summary>
+    public void ActivateMagnet(float duration, float range)
+    {
+        hasMagnetActive = true;
+        magnetEndTime = Time.time + duration;
+        magnetRange = range;
+        Debug.Log($"磁铁已激活，持续时间：{duration}秒，范围：{range}米");
+    }
+
+    /// <summary>
+    /// 添加护盾
+    /// </summary>
+    public void AddShield(int count = 1)
+    {
+        shieldCount += count;
+        Debug.Log($"获得护盾，当前护盾数：{shieldCount}");
+    }
+
+    /// <summary>
+    /// 设置无敌状态
+    /// </summary>
+    public void SetInvincible(bool invincible)
+    {
+        isInvincible = invincible;
+        Debug.Log($"无敌模式：{(invincible ? "开启" : "关闭")}");
+    }
+
+    #endregion
 
     #region 输入处理
 
@@ -381,6 +467,19 @@ public class PlayerController : MonoBehaviour
         // 检查是否撞到障碍物
         if (hit.collider.CompareTag("Obstacle"))
         {
+            // 如果无敌，直接忽略
+            if (isInvincible) return;
+
+            // 如果有护盾，消耗护盾
+            if (shieldCount > 0)
+            {
+                shieldCount--;
+                Debug.Log($"护盾抵消了一次碰撞，剩余护盾数：{shieldCount}");
+                // 销毁障碍物（可选）
+                Destroy(hit.collider.gameObject);
+                return;
+            }
+
             Die();
         }
     }
@@ -396,13 +495,16 @@ public class PlayerController : MonoBehaviour
         // 磁铁道具
         else if (other.CompareTag("Magnet"))
         {
-            // TODO: 实现磁铁效果
+            float duration = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetSpeedBoostDuration() : 10f;
+            float rangeMultiplier = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetMagnetRangeMultiplier() : 1f;
+            ActivateMagnet(duration, 5f * rangeMultiplier);
             Destroy(other.gameObject);
         }
         // 护盾道具
         else if (other.CompareTag("Shield"))
         {
-            // TODO: 实现护盾效果
+            int shieldStrength = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetShieldStrength() : 1;
+            AddShield(shieldStrength);
             Destroy(other.gameObject);
         }
     }

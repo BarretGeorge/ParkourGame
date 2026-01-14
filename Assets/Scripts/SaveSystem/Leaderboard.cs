@@ -4,6 +4,7 @@ using System.Linq;
 
 /// <summary>
 /// 排行榜系统
+/// 支持本地排行榜和在线排行榜混合模式
 /// </summary>
 [System.Serializable]
 public class LeaderboardEntry
@@ -33,9 +34,21 @@ public class Leaderboard : MonoBehaviour
     // 本地排行榜
     private List<LeaderboardEntry> localLeaderboard = new List<LeaderboardEntry>();
 
+    // 在线排行榜
+    private List<LeaderboardEntry> onlineLeaderboard = new List<LeaderboardEntry>();
+    private bool onlineLeaderboardLoaded = false;
+
+    // API客户端（可选）
+    private APIClient apiClient;
+
     // 单例
     private static Leaderboard _instance;
     public static Leaderboard Instance => _instance;
+
+    /// <summary>
+    /// 是否启用在线排行榜
+    /// </summary>
+    public bool IsOnlineEnabled => apiClient != null && SaveManager.Instance != null && SaveManager.Instance.IsNetworkMode;
 
     private void Awake()
     {
@@ -43,11 +56,27 @@ public class Leaderboard : MonoBehaviour
         {
             _instance = this;
             DontDestroyOnLoad(gameObject);
+            InitializeOnlineLeaderboard();
             LoadLeaderboard();
         }
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    /// <summary>
+    /// 初始化在线排行榜
+    /// </summary>
+    private void InitializeOnlineLeaderboard()
+    {
+        // 查找APIClient
+        apiClient = FindObjectOfType<APIClient>();
+
+        // 如果启用在线模式，自动加载在线排行榜
+        if (IsOnlineEnabled)
+        {
+            RefreshOnlineLeaderboard();
         }
     }
 
@@ -58,6 +87,7 @@ public class Leaderboard : MonoBehaviour
         string name = playerName ?? defaultPlayerName;
         LeaderboardEntry entry = new LeaderboardEntry(name, score, distance, coins);
 
+        // 添加到本地排行榜
         localLeaderboard.Add(entry);
 
         // 按分数排序
@@ -72,6 +102,12 @@ public class Leaderboard : MonoBehaviour
         }
 
         SaveLeaderboard();
+
+        // 如果启用在线模式，提交到服务器
+        if (IsOnlineEnabled && apiClient != null)
+        {
+            SubmitToOnlineLeaderboard(score, distance, coins, name);
+        }
     }
 
     public bool IsHighScore(int score)
@@ -223,6 +259,118 @@ public class Leaderboard : MonoBehaviour
     {
         if (localLeaderboard.Count == 0) return 0f;
         return localLeaderboard.Average(e => e.distance);
+    }
+
+    #endregion
+
+    #region 在线排行榜
+
+    /// <summary>
+    /// 提交分数到在线排行榜
+    /// </summary>
+    private void SubmitToOnlineLeaderboard(int score, float distance, int coins, string playerName)
+    {
+        if (apiClient == null) return;
+
+        apiClient.SubmitScore(playerName, score, distance, coins, (success, message) =>
+        {
+            if (success)
+            {
+                Debug.Log($"分数已提交到在线排行榜: {score}");
+            }
+            else
+            {
+                Debug.LogWarning($"提交分数失败: {message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// 刷新在线排行榜数据
+    /// </summary>
+    public void RefreshOnlineLeaderboard(System.Action<bool, string> callback = null)
+    {
+        if (apiClient == null || !IsOnlineEnabled)
+        {
+            callback?.Invoke(false, "在线排行榜未启用");
+            return;
+        }
+
+        apiClient.GetLeaderboard(0, 100, (success, entries, message) =>
+        {
+            if (success && entries != null)
+            {
+                onlineLeaderboard = entries;
+                onlineLeaderboardLoaded = true;
+                Debug.Log($"在线排行榜已更新，共 {entries.Count} 条记录");
+            }
+            else
+            {
+                Debug.LogWarning($"获取在线排行榜失败: {message}");
+            }
+            callback?.Invoke(success, message);
+        });
+    }
+
+    /// <summary>
+    /// 获取在线排行榜
+    /// </summary>
+    public List<LeaderboardEntry> GetOnlineLeaderboard()
+    {
+        return onlineLeaderboard;
+    }
+
+    /// <summary>
+    /// 获取混合排行榜（在线+本地）
+    /// </summary>
+    public List<LeaderboardEntry> GetHybridLeaderboard(int count)
+    {
+        List<LeaderboardEntry> result = new List<LeaderboardEntry>();
+
+        // 如果有在线排行榜，优先使用
+        if (onlineLeaderboardLoaded && onlineLeaderboard.Count > 0)
+        {
+            result.AddRange(onlineLeaderboard.Take(count));
+        }
+        else
+        {
+            // 否则使用本地排行榜
+            result.AddRange(localLeaderboard.Take(count));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 获取玩家在全球排行榜中的排名
+    /// </summary>
+    public void GetPlayerGlobalRank(string playerName, System.Action<int> callback)
+    {
+        if (apiClient == null || !IsOnlineEnabled)
+        {
+            callback?.Invoke(-1);
+            return;
+        }
+
+        apiClient.GetLeaderboard(0, 1000, (success, entries, message) =>
+        {
+            if (success && entries != null)
+            {
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    if (entries[i].playerName == playerName)
+                    {
+                        callback?.Invoke(i + 1);
+                        return;
+                    }
+                }
+                callback?.Invoke(-1); // 未找到
+            }
+            else
+            {
+                callback?.Invoke(-1);
+            }
+        });
     }
 
     #endregion

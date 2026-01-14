@@ -18,6 +18,7 @@ public class PlayerJump : MonoBehaviour
     private float verticalVelocity;
     private bool isJumping;
     private float lastGroundedTime;
+    private float jumpForceModifier = 1f;
 
     // 状态属性
     public bool IsGrounded => isGrounded;
@@ -81,8 +82,24 @@ public class PlayerJump : MonoBehaviour
     {
         // 计算跳跃初速度: v = sqrt(2 * g * h)
         float gravity = Physics.gravity.y * playerData.gravityMultiplier;
-        verticalVelocity = Mathf.Sqrt(2 * -gravity * height);
+        verticalVelocity = Mathf.Sqrt(2 * -gravity * height) * jumpForceModifier;
         isJumping = true;
+    }
+
+    /// <summary>
+    /// 设置跳跃力修正值
+    /// </summary>
+    public void SetJumpForceModifier(float modifier)
+    {
+        jumpForceModifier = modifier;
+    }
+
+    /// <summary>
+    /// 获取跳跃力修正值
+    /// </summary>
+    public float GetJumpForceModifier()
+    {
+        return jumpForceModifier;
     }
 
     /// <summary>

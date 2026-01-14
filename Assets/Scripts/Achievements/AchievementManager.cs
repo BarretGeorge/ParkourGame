@@ -142,29 +142,45 @@ public class AchievementManager : MonoBehaviour
         // 金币奖励
         if (definition.coinReward > 0 && SaveManager.Instance != null)
         {
-            // TODO: 添加金币
+            SaveManager.Instance.AddCoins(definition.coinReward);
             Debug.Log($"成就奖励: {definition.coinReward} 金币");
         }
 
         // 经验奖励
-        if (definition.expReward > 0)
+        if (definition.expReward > 0 && SaveManager.Instance != null)
         {
-            // TODO: 添加经验
+            SaveManager.Instance.AddExperience(definition.expReward);
             Debug.Log($"成就奖励: {definition.expReward} 经验");
         }
 
         // 解锁角色
         if (!string.IsNullOrEmpty(definition.unlockCharacterId) && ShopManager.Instance != null)
         {
-            // TODO: 解锁角色
-            Debug.Log($"成就奖励: 解锁角色 {definition.unlockCharacterId}");
+            CharacterData character = ShopManager.Instance.GetCharacter(definition.unlockCharacterId);
+            if (character != null)
+            {
+                int characterIndex = ShopManager.Instance.GetAllCharacters().IndexOf(character);
+                if (characterIndex >= 0)
+                {
+                    SaveManager.Instance.GetSaveData().UnlockCharacter(characterIndex);
+                    Debug.Log($"成就奖励: 解锁角色 {definition.unlockCharacterId}");
+                }
+            }
         }
 
         // 解锁皮肤
         if (!string.IsNullOrEmpty(definition.unlockSkinId) && ShopManager.Instance != null)
         {
-            // TODO: 解锁皮肤
-            Debug.Log($"成就奖励: 解锁皮肤 {definition.unlockSkinId}");
+            SkinData skin = ShopManager.Instance.GetSkin(definition.unlockSkinId);
+            if (skin != null)
+            {
+                int skinIndex = ShopManager.Instance.GetAllSkins().IndexOf(skin);
+                if (skinIndex >= 0)
+                {
+                    SaveManager.Instance.GetSaveData().UnlockSkin(skinIndex);
+                    Debug.Log($"成就奖励: 解锁皮肤 {definition.unlockSkinId}");
+                }
+            }
         }
     }
 

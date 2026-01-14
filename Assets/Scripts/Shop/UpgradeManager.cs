@@ -135,7 +135,10 @@ public class UpgradeManager : MonoBehaviour
         int cost = upgrade.GetCostForNextLevel();
 
         // 扣除金币
-        // TODO: 实现金币扣除
+        if (SaveManager.Instance != null)
+        {
+            SaveManager.Instance.SpendCoins(cost);
+        }
 
         upgrade.Upgrade();
         SaveUpgrades();
