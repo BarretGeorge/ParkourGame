@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: achievementmgr123456789
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: 2
+  defaultReferences:
+  - type: 0
+    value: |-
+      serializedVersion: 2
+      GUID: achievementdef123456789
+  - type: 0
+    value: |-
+      serializedVersion: 2
+      GUID: achievementdef123456789
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData:
+  assetBundleName:
+  assetBundleVariant:

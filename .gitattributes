@@ -1,0 +1,61 @@
+# Unity 6 .gitattributes
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.cs text diff=csharp
+*.java text diff=java
+*.js text diff=javascript
+*.json text
+*.yaml text
+*.yml text
+
+# Shader files
+*.cginc text
+*.hlsl text
+*.glsl text
+*.shader text
+
+# Image files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.psd binary
+*.tga binary
+*.tiff binary
+*.bmp binary
+
+# Audio files
+*.mp3 binary
+*.wav binary
+*.ogg binary
+*.aif binary
+
+# 3D models
+*.fbx binary
+*.obj binary
+*.blend binary
+
+# Unity files
+*.unity text
+*.asset text
+*.prefab text
+*.meta text
+*.anim text
+*.controller text
+*.physicMaterial text
+*.physicsMaterial2D text
+*.mat text
+*.guiskin text
+
+# Build files
+*.apk binary
+*.aab binary
+
+# LFS (if using Git LFS)
+*.wav filter=lfs
+*.mp3 filter=lfs
+*.png filter=lfs
+*.jpg filter=lfs
